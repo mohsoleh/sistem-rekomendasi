@@ -52,14 +52,20 @@ Proses Exploratory Data Analysis (EDA) dilakukan dengan menganalisis dataset sec
 
 ### Univariate Analysis
 Berdasarkan informasi sebelumnya, mari kita lihat lebih detail informasi terkait movies dan rating, menggunakan function `info` :
-
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/eda-movies-info.png?raw=true)
+
 Dataset ini terdiri dari 62.423 baris dengan 3 kolom utama, yaitu movieId, title, dan genres. Selanjutnya mari kita lihat informasi genre menggunakan perintah berikut :
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/eda-genre-len.png?raw=true)
+
 Dataset mencakup 1.639 kombinasi genre unik, dengan beberapa tipe genre seperti Adventure|Animation|Children|Comedy|Fantasy, Comedy|Romance, dan kombinasi lainnya yang mencakup horor, misteri, hingga fiksi ilmiah, menunjukkan keragaman genre dalam dataset. selanjutnya kita lihat informasi dataset ratings.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/eda-ratings-info.png?raw=true)
+
 Dataset ini memiliki ukuran data yang sangat besar yakni 762.9 MB, dan memiliki 4 kolom diantaranya adalah userId, movieId, rating dan timestamp. Selanjutnya mari kita lihat informasi dari rating lebih detail lagi, menggunakan perintah berikut:
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/eda-ratings-describe.png?raw=true)
+
 Dari data di ratings memiliki rata-rata rating sebesar 3.53. Sebagian besar rating berkisar antara 3.0 sampai 4.0, yang mencerminkan bahwa mayoritas film mendapatkan penilaian yang cukup baik. Rating terendah adalah 0.5, sementara yang tertinggi mencapai 5.0.
 
 ## Data Preprocessing
@@ -67,19 +73,27 @@ Dari sudut pandang proses data preparation, langkah pertama yang saya lakukan ad
 
 ### Data Cleaning `movies.csv`
 Pada data `movies.csv`, terdapat tahun rilis dari film yang disertakan secara bersamaan pada feature judul film. Hal ini diperlukan penanganan khusus untuk memisahkan antara judul film dengan tahun rilis agar tidak terjadi permasalahan yang tidak diinginkan pada proses training model. dimana, tahun rilis dari setiap film akan dipisahkan ke dalam kolom tersendiri. dapat dilihat pada gambar berikut ini:
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preprocessing-separate-titles-and-year.png?raw=true)
+
 Kode pada gambar di atas, memisah tahun rilis dan title dengan menambahkan satu kolom year_of_release. sekarang kita hapus tahun rilis pada title menggunakan kode berikut :
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preprocessing-remove-year-from-title.png?raw=true)
+
 Dari gambar di atas, data telah tertata dengan baik setelah memisahkan informasi tahun rilis dari title dan menambahkan kolom baru bernama year_of_release.
 
 ### Data Cleaning `ratings.csv`
 Pada data `ratings.csv`, skala rating pada feature rating memiliki sebaran yang tidak normal. dimana terdapat data dalam bentuk kode timestamp. Akan susah untuk dipahami, kapan data tersebut diambil secara spesifik. maka, proses konversi dilakukan untuk mengubah timestamps menjadi data datetime.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preprocessing-convert-datetime.png?raw=true)
+
 Gambar di atas, hasil dari konversi timestamps menjadi data datetime, sehingga mempermudah dipahami.
 
 ### Data Merging `movies` dengan `ratings`
 Penggabungan dilakukan dengan melakukan merge pada kedua dataframe antara `movies` dengan `ratings` menjadi satu dataframe yang utuh dan mengassignnya kedalam variabel `films`.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preprocessing-marge-dataframe.png?raw=true)
+
 Gambar di atas menunjukkan hasil penggabungan data yang menghasilkan total sebanyak 25.003.471 entri. Jumlah ini berasal dari penggabungan data sebelumnya, yaitu 62.423 entri pada dataset movies dan 25.000.095 entri pada dataset ratings. Dataset hasil penggabungan ini terdiri dari 7 kolom.
 
 ## Data Preparation
@@ -87,35 +101,48 @@ Ada beberapa handling yang dilakukan pada dataframe `films`, diantaranya sebagai
 
 ### Handling Missing Values
 Data yang hilang, null, NaN atau tidak terbaca merupakan hal umum yang seringkali ditemui. Agar data yang missing tidak memengaruhi kinerja model yang akan dikembangkan, maka saya akan menghapusnya.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preparation-films-isnull.png?raw=true)
+
 Gambar di atas terdapat banyak missing value pada sebagian besar fitur. Hanya fitur movieId, title, ganres saja yang memiliki 0 missing value. sehingga perlu kita drop data tersebut menggunakan perintah `films = films.dropna()`.
 
 ### Handling `No Genres Listed`
 Pada proyek ini, saya menemukan missing values pada beberapa feature, salah satunya adalah genre dimana terdapat data '(no genres listed)'. sehingga kita perlu menghapus data yang tidak memiliki genre, menggunakan kode berikut :
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preparation-clean-no-genre.png?raw=true)
+
 Dari data 24.988.552 sebelumnya, sekarang data menjadi 24.964.826 yang tandanya semua movie yang tidak memiliki genre sudah berhasil dihapus.
 
 ### Handling Scala Ratings
 Skala rating pada feature rating memiliki sebaran yang tidak normal. dimana data rating memiliki skala 0.5 sampai 5 dengan perbedaan 0.5 setiap skalanya. handling yang dilakukan untuk pada case ini adalah dengan membulatkan nilai skala pada feature rating agar distribusi skala memiliki rentang 1-5.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preparation-round-ratings.png?raw=true)
+
 Kode di atas digunakan untuk membulatkan nilai pada kolom rating dalam dataframe bernama films menggunakan fungsi np.ceil dari library NumPy. 
 
 ### Handling Duplicate Data
 Dataset yang berantakan dan terduplikasi dapat mempengaruhi hasil modeling dan analisis akhir. Pada proyek ini, terdapat banyak duplikasi data didalamnya berdasarkan id film dan judul film. Menghapusnya merupakan langkah yang tepat untuk merapikan data. pada proyek ini menggunakan kode berikut ini:
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preparation-drop-duplicate-data.png?raw=true)
 
 ### Fixed data in genre features
 Pada features genre, saya mendapati genre ***Sci-Fi***. setelah saya pahami, ternyata ***Sci-Fi*** merupakan akronim dari kata ***Science Fiction*** yang menggambarkan film fiksi ilmiah. kata ***Sci-Fi*** memiliki separator dash atau tanda pisah. Hal ini, perlu dihilangkan. apabila tidak dihilangkan maka pada tahap vektorisasi TF-IDF nantinya kata ***Sci-Fi*** akan diperlakukan sebagai 2 kata yang berbeda ***Sci*** dan ***Fi***. karena, pada tahap TF-IDF selain melakukan vektorisasi juga dilakukan tokenisasi. proses mengganti kata ***Sci-Fi*** dapat dilihat di kode berikut:
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preparation-replace-sci-fi-to-scifi.png?raw=true)
 
 ### Membuat Variable preparation
 Sebelum diproses oleh Model, ayo kita buat variabel preparation yang berisi dataframe films kemudian mengurutkan berdasarkan movieId 
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preparation-order-by-movie_id.png?raw=true)
+
 Gambar di atas menunjukkan hasil preparation, data yang akan proses pada model sebanyak 50.607 entri dan terdiri dari 7 kolom. Selanjutnya, kita perlu melakukan konversi data series menjadi list. Dalam hal ini, kita menggunakan fungsi tolist() dari library numpy. Implementasikan kode berikut.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preparation-convert-to-list.png?raw=true)
+
 Kode ini mengonversi kolom movieId, title, dan genres dari dataset preparation ke dalam bentuk daftar Python menggunakan metode .tolist(). Variabel film_id, film_name, dan film_genre masing-masing menyimpan data ID film, judul film, dan genre film dalam format list. Ketiga kolom di atas memiliki jumlah data yang sama yakni 50.607. Tahap berikutnya, kita akan membuat dictionary untuk menentukan pasangan key-value pada data film_id, film_name, dan genre yang telah kita siapkan sebelumnya.
 
 Tahap berikutnya, kita akan membuat dictionary untuk menentukan pasangan key-value pada data film_id, film_name, dan genre yang telah kita siapkan sebelumnya.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/preparation-create-dataframe.png?raw=true)
 
 Sampai tahap ini, data telah siap untuk dimasukkan ke dalam pemodelan.
@@ -133,6 +160,7 @@ Pada proyek ini, saya akan menggunakan pendekatan content-based filtering untuk 
 
 ### TF-IDF Vectorizer
 Proses term frequency-inverse document frequency (TF-IDF) diperlukan untuk menemukan representasi kata yang penting dalam kolom genre. Pada proyek ini, proses vectorizer dilakukan dengan memanfaatkan function [tfidfvectorizer()](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html) yang telah tersedia pada library scikit-learn. berikut hasil tf-idf dalam bentuk matrix. yang mana pada matrix menunjukkan korelasi antara film dengan genre-nya.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/model-create-sparse.png?raw=true)
 
 Kode ini membuat Sparse DataFrame dari matriks TF-IDF (tfidf_matrix) untuk menghubungkan film dengan genre secara efisien, menggunakan nama film sebagai indeks dan genre sebagai kolom. Selanjutnya, dilakukan sampling untuk memilih 10 baris (film) dan 20 kolom (genre) secara acak, menghasilkan subset kecil data yang siap untuk dianalisis lebih lanjut.
@@ -141,6 +169,7 @@ Output gambar tersebut merupakan hasil representasi data dalam bentuk matriks TF
 
 ### Perhitungan Cosine Similarity
 Cosine similarity digunakan untuk menghitung derajat kesamaan (similarity degree) antar film. Pada proyek ini, kalkulasi similarity dilakukan dengan mengimplementasikan function [cosine_similarity()](http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html) yang telah tersedia pada library sklearn. Perhitungan similarity merupakan tahapan paling penting dalam pendekatan content-based filtering, karena pada dasarnya pendekatan ini menerapkan prinsip kesamaan antar item untuk mendapatkan hasil rekomendasi yang sesuai. Output dari cosine similarity akan menghasilkan suatu matrix kesamaan yang bisa dilihat pada konversi ke bentuk dataframe berikut. 
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/model-consin-sim-to-dense.png?raw=true)
 
 Kode ini mengonversi matriks cosine similarity dari bentuk sparse ke bentuk dense menggunakan toarray(), sehingga dapat diproses lebih lanjut. Selanjutnya, matriks dense ini digunakan untuk membuat sebuah DataFrame bernama cosine_sim_df, di mana indeks dan kolomnya adalah nama-nama film dari data['film_name'].
@@ -157,6 +186,7 @@ Data ini penting untuk sistem rekomendasi berbasis konten (content-based filteri
 
 ### Create Custom Functions
 Tahapan terakhir adalah membangun custom function untuk mendapatkan rekomendasi terhadap data input yang diinginkan. functions ini bekerja dengan mengambil similarity dari data film yang ingin dicari, data yang similar akan dimasukkan ke dalam variabel closest. parameter K di define untuk menghasilkan top-K recommendation berdasarkan tingkat similarity tertinggi. film yang dicari akan dihapus agar tidak muncul dalam daftar rekomendasi. Step terakhir, return digunakan untuk mengembalikan values dalam bentuk dataframe, dimana values yang di return merupakan rekomendasi dari judul film berdasarkan tingkat similarity.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/model-function-recomendation.png?raw=true)
 
 ### Recommendations
@@ -180,6 +210,7 @@ Pada tahap awal, diperlukan beberapa library salah satunya adalah tensorflow dan
 
 ### Data Preparation
 Proses encoding dilakukan pada tahap ini, dengan melakukan encode pada feature 'userId' dan 'movieId'. proses encode akan memetakan setiap nilai pada kedua feature tersebut ke dalam bentuk index.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/model-encode-user-id.png?raw=true)
 
 Kode ini melakukan encoding pada kolom userId dalam dataset. Pertama, nilai unik dari userId diubah menjadi daftar menggunakan .unique().tolist(). Kemudian, setiap userId di-encode menjadi indeks numerik menggunakan dictionary user_to_user_encoded. Sebaliknya, dictionary user_encoded_to_user memetakan indeks numerik kembali ke userId asli. Ini memungkinkan representasi userId dalam bentuk numerik yang lebih mudah digunakan dalam model dan analisis.
@@ -194,10 +225,12 @@ Tahap persiapan ini penting dilakukan agar data siap digunakan untuk pemodelan. 
 
 ### Split Data for Training and Validation
 Data dibagi untuk data train dan validasi dengan komposisi 80/20. Pembagian ini bertujuan agar data yang digunakan dapat digunakan untuk mengembangkan model dan mengevaluasi performance dari model yang telah dikembangkan.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/model-split-data-train.png?raw=true)
 
 ### Training
 Proses training dilakukan dengan mengimplementasikan teknik embedding untuk menghitung skor kecocokan antara film dengan users. kemudian, pada  proses compile dilakukan menggunakan BinaryCrossentropy untuk menghitung loss function, Adam (Adaptive Moment Estimation) sebagai optimizer, dan root mean squared error (RMSE) sebagai metrics evaluation. Proses training model berjalan sebanyak 25 epochs sebagai berikut.
+
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/model-output-training.png?raw=true)
 
 ### Metrics Visualization
@@ -225,6 +258,7 @@ Nilai cosinus similarity memiliki rentang yang terbatas antara 0 dan 1. ukuran k
 Precision merupakan tingkat ketepatan antara informasi yang diminta oleh pengguna dengan hasil yang diberikan oleh sistem. Precision sangat cocok diterapkan sebagai metriks evaluasi pada sistem rekomendasi yang mana pengukuran kualitas akan ditentukan melalui seberapa bergunakah sistem dapat melakukan prediksi. 
 
 ![](https://github.com/mohsoleh/sistem-rekomendasi/blob/main/img/precision-table.png?raw=true)
+
 Keterangan:
 - **True Postive (TP):** prediksinya **Positif** dan hasil yang sebenarnya memang **Positif.**
 - **False Positive (FP)**: prediksinya **Positif**, namun hasil yang sebenarnya adalah **Negatif.**
